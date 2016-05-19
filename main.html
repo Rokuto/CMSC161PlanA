@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<style>
+			body {margin: 0;
+				  background-image:url(typhoon.jpg);
+				  overflow: hidden;}
+			canvas {width: 100%;
+					height: 100%;}
+			#info {visibility: hidden;}
+		</style>
+	</head>
+	<body>
+
+		<script src="lib/three.min.js"></script>
+		<script>
+			var sceneText = [
+				"",
+				"<p>Let there be light</p>",
+				"<p>Let there be a vault between the waters to separate water from water</p>",
+				"<p>Let the water under the sky be gathered to one place, and let dry ground appear</p>",
+				""
+
+				];
+			var sceneIndex = 0;
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight);
+			var renderer = new THREE.WebGLRenderer();
+
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setClearColor(0x000000, 1);
+			document.body.appendChild(renderer.domElement);
+
+			//if(sceneIndex >= 2){
+
+				var loader = new THREE.TextureLoader();
+				var space = loader.load( 'skyAndWater.jpg' ); 
+
+				var bg = new THREE.Mesh(
+				  new THREE.PlaneGeometry(20, 10,4,4),
+				  new THREE.MeshBasicMaterial({map: space})
+				);
+
+				// The bg plane shouldn't care about the z-buffer.
+				bg.material.depthTest = false;
+				bg.material.depthWrite = false;
+
+				var loader1 = new THREE.TextureLoader();
+				var earth = loader1.load( 'earth.jpg' ); 
+
+				var bg1 = new THREE.Mesh(
+				  new THREE.PlaneGeometry(20, 10,4,4),
+				  new THREE.MeshBasicMaterial({map: earth})
+				);
+
+				// The bg plane shouldn't care about the z-buffer.
+				bg1.material.depthTest = false;
+				bg1.material.depthWrite = false;
+
+				
+			//}
+
+			var geometry = new THREE.BoxGeometry(2,2,2);
+			var material = new THREE.MeshPhongMaterial({color: 0xffffff});
+			var cube = new THREE.Mesh(geometry, material);
+			scene.add(cube);
+
+			camera.position.z = 5;
+
+
+
+
+			var ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
+			scene.add(ambientLight);
+
+			var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+			directionalLight.position.set(0, 0, 1);
+			scene.add(directionalLight);
+
+			var text = document.createElement('div');
+			text.style.position = 'absolute';
+			text.style.top = 0 + 'px';
+			text.style.left = 0 + 'px';
+			text.style.color = "WHITE";
+			document.body.appendChild(text);
+
+			var nextButton = document.createElement('div');
+			nextButton.innerHTML = "Next";
+			nextButton.style.position = 'absolute';
+			nextButton.style.bottom = 10 + 'px';
+			nextButton.style.left = 100 + 'px';
+			nextButton.style.color = "WHITE";
+			nextButton.onclick = function(){
+				sceneIndex++; 
+				if(sceneIndex > sceneText.length - 1) 
+					sceneIndex = sceneText.length - 1;
+			};
+			document.body.appendChild(nextButton);
+
+			var prevButton = document.createElement('div');
+			prevButton.innerHTML = "Previous";
+			prevButton.style.position = 'absolute';
+			prevButton.style.bottom = 10 + 'px';
+			prevButton.style.left = 0 + 'px';
+			prevButton.style.color = "WHITE";
+			prevButton.onclick = function(){
+				sceneIndex--;
+				if(sceneIndex < 0) 
+					sceneIndex = 0;
+			};
+			document.body.appendChild(prevButton);
+
+			var demoButton = document.createElement('div');
+			demoButton.innerHTML = "Demo";
+			demoButton.style.position = 'absolute';
+			demoButton.style.bottom = 10 + 'px';
+			demoButton.style.left = 170 + 'px';
+			demoButton.style.color = "BLACK";
+			demoButton.id = "info";
+			document.body.appendChild(demoButton);
+
+
+			var earthGeometry = new THREE.BoxGeometry(1,1,1);
+			var earthMaterial = new THREE.MeshPhongMaterial({color: 0x0000ff});
+			var earthCube = new THREE.Mesh(earthGeometry, earthMaterial);
+			earthCube.translateX(4);
+
+			function render(){
+				requestAnimationFrame(render);
+
+				cube.rotation.x += 0.01;
+				cube.rotation.y += 0.01;
+
+				text.innerHTML = sceneText[sceneIndex];
+
+				if (sceneIndex >= 1 && sceneIndex != 3){
+					renderer.setClearColor(new THREE.Color().setRGB(0.8, 0.8, 0.8));
+					ambientLight.intensity = 1;
+					text.style.color = "BLACK";
+					nextButton.style.color = "BLACK";
+					prevButton.style.color = "BLACK";
+					demoButton.style.color = "BLACK";
+					//scene.add(earthCube);
+					//earthCube.rotation.x += 0.01;
+					//earthCube.rotation.y += 0.01;
+				} else {
+					renderer.setClearColor(new THREE.Color().setRGB(0, 0, 0));
+					if(sceneIndex == 3){
+						text.style.color = "BLACK";
+					}else{
+						text.style.color = "WHITE";
+					}
+					nextButton.style.color = "WHITE";
+					prevButton.style.color = "WHITE";
+					demoButton.style.color = "WHITE";
+					//scene.remove(earthCube);
+				}
+
+
+				var info = document.getElementById("info");
+				if (sceneIndex == 2){
+					scene.remove(bg1);
+					scene.add(bg);
+					info.style.visibility = "visible";
+					nextButton.style.visibility = "visible";
+					//info.href = "skyAndWater.html";
+					info.onclick = function(){
+						window.open("skyAndWater.html");
+					};
+
+				}else if (sceneIndex == 3){
+					scene.add(bg1);
+					info.style.visibility = "visible";
+					//info.href = "skyAndWater.html";
+					nextButton.style.visibility = "hidden";
+					info.onclick = function(){
+						window.open("landscape.html");
+					};
+
+				}else{
+					scene.remove(bg);
+					scene.remove(bg1);
+					info.style.visibility = "hidden";
+				}
+
+				renderer.render(scene, camera);
+			}
+
+			render();
+		</script>
+	</body>
+</html>
